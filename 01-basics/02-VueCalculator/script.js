@@ -10,8 +10,8 @@ const app = createApp({
     },
     computed: {
         calcResult() {
-            const value1 = Number(this.value1);
-            const value2 = Number(this.value2);
+            const value1 = this.value1;
+            const value2 = this.value2;
             switch (this.operation) {
                 case 'sum':
                     return value1 + value2;
