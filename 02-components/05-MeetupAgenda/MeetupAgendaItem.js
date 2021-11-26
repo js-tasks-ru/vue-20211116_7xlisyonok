@@ -1,6 +1,5 @@
 import { defineComponent } from './vendor/vue.esm-browser.js';
 import { agendaItemIcons, agendaItemDefaultTitles } from './meetupService.js';
-//console.log(agendaItemIcons);
 
 export default defineComponent({
     name: 'MeetupAgendaItem',
