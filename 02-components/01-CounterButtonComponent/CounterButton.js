@@ -10,9 +10,7 @@ export default defineComponent({
         },
     },
 
-    emits: {
-        'update:count': () => true,
-    },
+    emits: ['update:count'],
 
     methods: {
         updateCount() {
