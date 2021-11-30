@@ -1,5 +1,5 @@
 <template>
-    <UiToaster :toastList="toastListVisible" />
+    <UiToaster :toastList="toastList" />
 </template>
 
 <script>
@@ -15,69 +15,52 @@ export default {
 
     data() {
         return {
-            toastList: [],
+            toastList: new Set(),
         };
     },
 
-    computed: {
-        toastListVisible() {
-            return this.toastList.filter((e) => e.visible);
-        },
+    beforeMount() {
+        this._nextToastIndex = 0;
+    },
+
+    beforeUnmount() {
+        this.toastList.forEach(this.clearTimeout);
     },
 
     methods: {
-        create(text, type, timeout) {
-            const toastIndex = this.toastList.length;
+        createToast(text, type, timeout) {
+            const toastIndex = this._nextToastIndex++;
 
             const newToast = {
                 text: text,
                 type: type,
-                id: this.toastList.length,
-                visible: false,
+                id: toastIndex,
                 timeoutIndex: null,
             };
 
-            this.toastList.push(newToast);
-            this.show(toastIndex, timeout);
-            this.setTimeout(toastIndex, timeout);
-
-            return toastIndex;
+            this.toastList.add(newToast);
+            this.setTimeout(newToast, timeout);
         },
 
-        hide(index) {
-            const toast = this.getToast(index);
-            toast.visible = false;
-        },
-
-        show(index) {
-            const toast = this.getToast(index);
-            toast.visible = true;
-        },
-
-        setTimeout(index, timeout) {
+        setTimeout(toast, timeout) {
             timeout = timeout || toasterDefaultTimeout;
             if (timeout > 0) {
-                const toast = this.getToast(index);
-                if (toast) {
-                    clearTimeout(toast.timeoutIndex);
-                    toast.timeoutIndex = setTimeout(() => this.hide(index), timeout);
-                }
+                clearTimeout(toast.timeoutIndex);
+                toast.timeoutIndex = setTimeout(() => this.toastList.delete(toast), timeout);
             }
         },
 
-        getToast(index) {
-            if (index < 0 || index > this.toastList.length) {
-                throw new Error('index out of toastList');
-            }
-            return this.toastList[index];
+        clearTimeout(toast) {
+            if (toast.timeoutIndex) clearTimeout(toast.timeoutIndex);
+            toast.timeoutIndex = null;
         },
 
         success(text, timeout) {
-            this.create(text, 'success', timeout);
+            this.createToast(text, 'success', timeout);
         },
 
         error(text, timeout) {
-            this.create(text, 'error', timeout);
+            this.createToast(text, 'error', timeout);
         },
     },
 };
