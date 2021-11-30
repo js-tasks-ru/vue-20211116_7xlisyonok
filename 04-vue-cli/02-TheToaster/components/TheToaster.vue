@@ -1,73 +1,84 @@
 <template>
-  <div class="toasts">
-    <div class="toast toast_success">
-      <ui-icon class="toast__icon" icon="check-circle" />
-      <span>Success Toast Example</span>
-    </div>
-
-    <div class="toast toast_error">
-      <ui-icon class="toast__icon" icon="alert-circle" />
-      <span>Error Toast Example</span>
-    </div>
-  </div>
+    <UiToaster :toastList="toastListVisible" />
 </template>
 
 <script>
-import UiIcon from './UiIcon';
+import UiToaster from './UiToaster.vue';
+import { toasterDefaultTimeout } from '../meetupService.js';
 
 export default {
-  name: 'TheToaster',
+    name: 'TheToaster',
 
-  components: { UiIcon },
+    components: {
+        UiToaster,
+    },
+
+    data() {
+        return {
+            toastList: [],
+        };
+    },
+
+    computed: {
+        toastListVisible() {
+            return this.toastList.filter((e) => e.visible);
+        },
+    },
+
+    methods: {
+        create(text, type, timeout) {
+            const toastIndex = this.toastList.length;
+
+            const newToast = {
+                text: text,
+                type: type,
+                id: this.toastList.length,
+                visible: false,
+                timeoutIndex: null,
+            };
+
+            this.toastList.push(newToast);
+            this.show(toastIndex, timeout);
+            this.setTimeout(toastIndex, timeout);
+
+            return toastIndex;
+        },
+
+        hide(index) {
+            const toast = this.getToast(index);
+            toast.visible = false;
+        },
+
+        show(index) {
+            const toast = this.getToast(index);
+            toast.visible = true;
+        },
+
+        setTimeout(index, timeout) {
+            timeout = timeout || toasterDefaultTimeout;
+            if (timeout > 0) {
+                const toast = this.getToast(index);
+                if (toast) {
+                    clearTimeout(toast.timeoutIndex);
+                    toast.timeoutIndex = setTimeout(() => this.hide(index), timeout);
+                }
+            }
+        },
+
+        getToast(index) {
+            if (index < 0 || index > this.toastList.length) {
+                throw new Error('index out of toastList');
+            }
+            return this.toastList[index];
+        },
+
+        success(text, timeout) {
+            this.create(text, 'success', timeout);
+        },
+
+        error(text, timeout) {
+            this.create(text, 'error', timeout);
+        },
+    },
 };
 </script>
-
-<style scoped>
-.toasts {
-  position: fixed;
-  bottom: 8px;
-  right: 8px;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  white-space: pre-wrap;
-  z-index: 999;
-}
-
-@media all and (min-width: 992px) {
-  .toasts {
-    bottom: 72px;
-    right: 112px;
-  }
-}
-
-.toast {
-  display: flex;
-  flex: 0 0 auto;
-  flex-direction: row;
-  align-items: center;
-  padding: 16px;
-  background: #ffffff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-  border-radius: 4px;
-  font-size: 18px;
-  line-height: 28px;
-  width: auto;
-}
-
-.toast + .toast {
-  margin-top: 20px;
-}
-
-.toast__icon {
-  margin-right: 12px;
-}
-
-.toast.toast_success {
-  color: var(--green);
-}
-
-.toast.toast_error {
-  color: var(--red);
-}
-</style>
