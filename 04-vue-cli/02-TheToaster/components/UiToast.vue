@@ -7,7 +7,20 @@
 
 <script>
 import UiIcon from './UiIcon';
-import { toasterTypeConfig } from '../meetupService.js';
+
+/**
+ * Конфигурация иконок для тостера
+ */
+const toasterTypeConfig = {
+    success: {
+        iconClass: 'check-circle',
+        toastClass: 'toast_success',
+    },
+    error: {
+        iconClass: 'alert-circle',
+        toastClass: 'toast_error',
+    },
+};
 
 export default {
     name: 'UiToast',
