@@ -17,7 +17,7 @@ export default {
     props: {
         toastList: {
             type: Set,
-            default: () => [],
+            default: () => new Set(),
         },
     },
 

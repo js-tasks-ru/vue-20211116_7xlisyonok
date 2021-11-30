@@ -4,7 +4,11 @@
 
 <script>
 import UiToaster from './UiToaster.vue';
-import { toasterDefaultTimeout } from '../meetupService.js';
+
+/**
+ * Значение таймаута по умолчанию для TheToaster
+ */
+const toasterDefaultTimeout = 5000;
 
 export default {
     name: 'TheToaster',
