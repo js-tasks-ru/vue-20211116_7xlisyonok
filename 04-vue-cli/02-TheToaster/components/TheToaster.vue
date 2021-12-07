@@ -9,6 +9,7 @@ import UiToaster from './UiToaster.vue';
  * Значение таймаута по умолчанию для TheToaster
  */
 const toasterDefaultTimeout = 5000;
+let nextToastIndex = 0;
 
 export default {
     name: 'TheToaster',
@@ -23,17 +24,13 @@ export default {
         };
     },
 
-    beforeMount() {
-        this._nextToastIndex = 0;
-    },
-
     beforeUnmount() {
         this.toastList.forEach(this.clearTimeout);
     },
 
     methods: {
         createToast(text, type, timeout) {
-            const toastIndex = this._nextToastIndex++;
+            const toastIndex = nextToastIndex++;
 
             const newToast = {
                 text: text,
