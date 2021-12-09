@@ -21,7 +21,8 @@
         'form-control_sm': small,
         'form-control_rounded': rounded,
       }"
-      @input="updateModelValue"
+      @input="handleInput"
+      @change="handleChange"
     />
 
     <div v-if="hasRightIcon" class="input-group__icon">
@@ -53,6 +54,10 @@ export default {
 
     modelValue: {
       type: String,
+    },
+
+    modelModifiers: {
+      default: () => ({}),
     },
   },
 
@@ -90,8 +95,15 @@ export default {
       this.$refs.input.focus();
     },
 
+    handleInput($event) {
+      if (!this.modelModifiers.lazy) this.updateModelValue($event);
+    },
+
+    handleChange($event) {
+      if (this.modelModifiers.lazy) this.updateModelValue($event);
+    },
+
     updateModelValue($event) {
-      console.log($event);
       this.$emit('update:modelValue', $event.target.value);
     },
   },
