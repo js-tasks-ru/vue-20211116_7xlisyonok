@@ -1,8 +1,23 @@
 <template>
   <div class="image-uploader">
-    <label class="image-uploader__preview image-uploader__preview-loading" style="--bg-url: url('/link.jpeg')">
-      <span class="image-uploader__text">Загрузить изображение</span>
-      <input type="file" accept="image/*" class="image-uploader__input" />
+    <label
+      class="image-uploader__preview"
+      :class="{ 'image-uploader__preview-loading': state === 'uploading' }"
+      :style="{ '--bg-url': backgroundUrl }"
+      @click="handleClick"
+    >
+      <span v-if="state === 'empty'" class="image-uploader__text">Загрузить изображение</span>
+      <span v-else-if="state === 'preview'" class="image-uploader__text">Удалить изображение</span>
+      <span v-else-if="state === 'uploading'" class="image-uploader__text">Загрузка...</span>
+
+      <input
+        ref="input"
+        v-bind="$attrs"
+        type="file"
+        accept="image/*"
+        class="image-uploader__input"
+        @change="handleChangeFile"
+      />
     </label>
   </div>
 </template>
@@ -10,6 +25,88 @@
 <script>
 export default {
   name: 'UiImageUploader',
+  inheritAttrs: false,
+
+  props: {
+    preview: {
+      type: String,
+    },
+    uploader: {
+      type: Function,
+    },
+  },
+
+  emits: ['select', 'remove', 'upload', 'error'],
+
+  data() {
+    return {
+      previewUrl: this.preview,
+      // 'empty' = no preview image
+      // 'uploading'
+      // 'preview'
+      state: this.preview ? 'preview' : 'empty',
+    };
+  },
+
+  computed: {
+    backgroundUrl() {
+      if (this.state !== 'preview') return;
+      return this.previewUrl && `url('${this.previewUrl}')`;
+    },
+  },
+
+  methods: {
+    handleClick($event) {
+      if (this.state === 'preview') {
+        $event.preventDefault();
+        this.remove();
+        this.$emit('remove');
+      }
+
+      if (this.state === 'uploading') {
+        $event.preventDefault();
+      }
+    },
+
+    handleChangeFile($event) {
+      const file = $event.target.files[0];
+      this.$emit('select', file);
+
+      if (this.uploader) {
+        this.upload(file);
+      } else {
+        this.createPreview(file);
+      }
+    },
+
+    upload(file) {
+      this.state = 'uploading';
+      this.uploader(file).then(this.uploadSuccess, this.uploadError);
+    },
+
+    uploadSuccess(result) {
+      this.previewUrl = result.image;
+      this.state = 'preview';
+      this.$emit('upload', result);
+    },
+
+    uploadError(error) {
+      this.remove();
+      this.$emit('error', error);
+    },
+
+    createPreview(file) {
+      const Url = URL.createObjectURL(file);
+      this.previewUrl = Url;
+      this.state = 'preview';
+    },
+
+    remove() {
+      this.state = 'empty';
+      this.previewUrl = null;
+      this.$refs.input.value = null;
+    },
+  },
 };
 </script>
 
