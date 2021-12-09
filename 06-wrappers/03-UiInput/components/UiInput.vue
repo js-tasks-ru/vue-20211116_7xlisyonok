@@ -21,8 +21,7 @@
         'form-control_sm': small,
         'form-control_rounded': rounded,
       }"
-      @input="handleInput"
-      @change="handleChange"
+      @[updateEvent]="updateModelValue"
     />
 
     <div v-if="hasRightIcon" class="input-group__icon">
@@ -64,13 +63,6 @@ export default {
   emits: ['update:modelValue'],
 
   computed: {
-    classList() {
-      return {
-        'form-control_sm': this.small,
-        'form-control_rounded': this.rounded,
-      };
-    },
-
     tag() {
       return this.multiline ? 'textarea' : 'input';
     },
@@ -86,6 +78,10 @@ export default {
     hasAnyIcon() {
       return this.hasLeftIcon || this.hasRightIcon;
     },
+
+    updateEvent() {
+      return this.modelModifiers.lazy ? 'change' : 'input';
+    },
   },
 
   expose: ['focus'],
@@ -93,14 +89,6 @@ export default {
   methods: {
     focus() {
       this.$refs.input.focus();
-    },
-
-    handleInput($event) {
-      if (!this.modelModifiers.lazy) this.updateModelValue($event);
-    },
-
-    handleChange($event) {
-      if (this.modelModifiers.lazy) this.updateModelValue($event);
     },
 
     updateModelValue($event) {
