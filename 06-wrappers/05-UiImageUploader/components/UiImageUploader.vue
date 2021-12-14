@@ -41,6 +41,7 @@ export default {
   data() {
     return {
       previewUrl: this.preview,
+      previewUrlNeedRevoke: false,
       // 'empty' = no preview image
       // 'uploading'
       // 'preview'
@@ -53,6 +54,10 @@ export default {
       if (this.state !== 'preview') return;
       return this.previewUrl && `url('${this.previewUrl}')`;
     },
+  },
+
+  unmounted() {
+    this.revokeObjectURL();
   },
 
   methods: {
@@ -69,6 +74,8 @@ export default {
     },
 
     handleChangeFile($event) {
+      this.revokeObjectURL();
+
       const file = $event.target.files[0];
       this.$emit('select', file);
 
@@ -98,6 +105,7 @@ export default {
     createPreview(file) {
       const Url = URL.createObjectURL(file);
       this.previewUrl = Url;
+      this.previewUrlNeedRevoke = true;
       this.state = 'preview';
     },
 
@@ -105,6 +113,11 @@ export default {
       this.state = 'empty';
       this.previewUrl = null;
       this.$refs.input.value = null;
+    },
+
+    revokeObjectURL() {
+      if (this.previewUrlNeedRevoke) URL.revokeObjectURL(this.previewUrl);
+      this.previewUrlNeedRevoke = false;
     },
   },
 };
