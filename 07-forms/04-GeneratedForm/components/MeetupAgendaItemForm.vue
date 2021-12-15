@@ -1,40 +1,53 @@
 <template>
   <fieldset class="agenda-item-form">
-    <button type="button" class="agenda-item-form__remove-button">
+    <button type="button" class="agenda-item-form__remove-button" @click="$emit('remove')">
       <ui-icon icon="trash" />
     </button>
 
     <ui-form-group>
-      <ui-dropdown title="Тип" :options="$options.agendaItemTypeOptions" name="type" />
+      <ui-dropdown v-model="agendaItemLocal.type" title="Тип" :options="$options.agendaItemTypeOptions" name="type" />
     </ui-form-group>
 
     <div class="agenda-item-form__row">
       <div class="agenda-item-form__col">
         <ui-form-group label="Начало">
-          <ui-input type="time" placeholder="00:00" name="startsAt" />
+          <ui-input
+            ref="startsAtInput"
+            v-model="agendaItemLocal.startsAt"
+            type="time"
+            placeholder="00:00"
+            name="startsAt"
+          />
         </ui-form-group>
       </div>
       <div class="agenda-item-form__col">
         <ui-form-group label="Окончание">
-          <ui-input type="time" placeholder="00:00" name="endsAt" />
+          <ui-input
+            ref="endsAtInput"
+            v-model="agendaItemLocal.endsAt"
+            type="time"
+            placeholder="00:00"
+            name="endsAt"
+          />
         </ui-form-group>
       </div>
     </div>
 
-    <ui-form-group label="Заголовок">
-      <ui-input name="title" />
-    </ui-form-group>
-    <ui-form-group label="Описание">
-      <ui-input multiline name="description" />
+    <ui-form-group v-for="(field, fieldName) in fieldList" :key="fieldName" :label="field.label">
+      <component :is="field.component" v-bind="field.props" v-model="agendaItemLocal[fieldName]"></component>
     </ui-form-group>
   </fieldset>
 </template>
 
 <script>
+import { cloneDeep } from 'lodash-es';
 import UiIcon from './UiIcon';
 import UiFormGroup from './UiFormGroup';
 import UiInput from './UiInput';
 import UiDropdown from './UiDropdown';
+
+// Длинна суток, для вычисления продолжительности
+const fullDayDuration = 86400000;
 
 const agendaItemTypeIcons = {
   registration: 'key',
@@ -163,6 +176,56 @@ export default {
     agendaItem: {
       type: Object,
       required: true,
+    },
+  },
+
+  emits: ['update:agendaItem', 'remove'],
+
+  data() {
+    return {
+      agendaItemLocal: cloneDeep(this.agendaItem),
+      duration: 0,
+    };
+  },
+
+  computed: {
+    fieldList() {
+      return agendaItemFormSchemas[this.agendaItemLocal.type];
+    },
+
+    startsAtInput() {
+      return this.$refs.startsAtInput.$refs.input;
+    },
+
+    endsAtInput() {
+      return this.$refs.endsAtInput.$refs.input;
+    },
+  },
+
+  watch: {
+    'agendaItemLocal.startsAt'(newValue, oldValue) {
+      this.endsAtInput.valueAsNumber = (this.startsAtInput.valueAsNumber + this.duration) % fullDayDuration;
+    },
+
+    agendaItemLocal: {
+      deep: true,
+
+      handler() {
+        this.refreshDuration();
+        this.$emit('update:agendaItem', this.agendaItemLocal);
+      },
+    },
+  },
+
+  mounted() {
+    this.refreshDuration();
+  },
+
+  methods: {
+    refreshDuration() {
+      const newDuration = this.endsAtInput.valueAsNumber - this.startsAtInput.valueAsNumber;
+
+      this.duration = newDuration >= 0 ? newDuration : newDuration + fullDayDuration;
     },
   },
 };
