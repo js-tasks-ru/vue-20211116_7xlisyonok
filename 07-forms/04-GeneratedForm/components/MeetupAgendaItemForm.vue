@@ -47,9 +47,6 @@ import UiInput from './UiInput';
 import UiDropdown from './UiDropdown';
 import moment from 'moment';
 
-// Длинна суток, для вычисления продолжительности
-const fullDayDuration = 86400000;
-
 const agendaItemTypeIcons = {
   registration: 'key',
   opening: 'cal-sm',
