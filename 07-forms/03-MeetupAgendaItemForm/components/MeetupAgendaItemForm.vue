@@ -45,6 +45,7 @@ import UiIcon from './UiIcon';
 import UiFormGroup from './UiFormGroup';
 import UiInput from './UiInput';
 import UiDropdown from './UiDropdown';
+import moment from 'moment';
 
 // Длинна суток, для вычисления продолжительности
 const fullDayDuration = 86400000;
@@ -184,7 +185,7 @@ export default {
   data() {
     return {
       agendaItemLocal: cloneDeep(this.agendaItem),
-      duration: 0,
+      duration: null,
     };
   },
 
@@ -192,19 +193,13 @@ export default {
     fieldList() {
       return agendaItemFormSchemas[this.agendaItemLocal.type];
     },
-
-    startsAtInput() {
-      return this.$refs.startsAtInput.$refs.input;
-    },
-
-    endsAtInput() {
-      return this.$refs.endsAtInput.$refs.input;
-    },
   },
 
   watch: {
     'agendaItemLocal.startsAt'(newValue, oldValue) {
-      this.endsAtInput.valueAsNumber = (this.startsAtInput.valueAsNumber + this.duration) % fullDayDuration;
+      const startsAtDu = moment.duration(this.agendaItemLocal.startsAt);
+      const endsAtDu = startsAtDu.add(this.duration);
+      this.agendaItemLocal.endsAt = moment.utc(endsAtDu.asMilliseconds()).format('HH:mm');
     },
 
     agendaItemLocal: {
@@ -223,9 +218,9 @@ export default {
 
   methods: {
     refreshDuration() {
-      const newDuration = this.endsAtInput.valueAsNumber - this.startsAtInput.valueAsNumber;
-
-      this.duration = newDuration >= 0 ? newDuration : newDuration + fullDayDuration;
+      const endsAtDu = moment.duration(this.agendaItemLocal.endsAt);
+      const startsAtDu = moment.duration(this.agendaItemLocal.startsAt);
+      this.duration = endsAtDu.subtract(startsAtDu);
     },
   },
 };
