@@ -1,10 +1,7 @@
 <template>
   <ui-input ref="uiInput" v-model="modelValueFormatted" :type="type">
-    <template v-if="$slots['left-icon']" #left-icon>
-      <slot name="left-icon" />
-    </template>
-    <template v-if="$slots['right-icon']" #right-icon>
-      <slot name="left-icon" />
+    <template v-for="slotName in Object.keys($slots)" #[slotName]>
+      <slot :name="slotName" />
     </template>
   </ui-input>
 </template>

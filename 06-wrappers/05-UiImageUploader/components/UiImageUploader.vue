@@ -51,7 +51,7 @@ export default {
 
   computed: {
     backgroundUrl() {
-      if (this.state !== 'preview') return;
+      if (this.state !== 'preview') return 'var(--default-cover)';
       return this.previewUrl && `url('${this.previewUrl}')`;
     },
   },
