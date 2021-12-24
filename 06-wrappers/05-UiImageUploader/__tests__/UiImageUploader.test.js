@@ -67,7 +67,6 @@ describe('wrappers/UiImageUploader', () => {
       const mockFile = createInputFileMock(wrapper.get('input'));
       const { file } = await mockFile();
       await flushPromises();
-      await nextTick();
       expect(wrapper.emitted('select')).toBeDefined();
       expect(wrapper.emitted('select')).toHaveLength(1);
       expect(wrapper.emitted('select')[0][0]).toBe(file);
@@ -83,16 +82,19 @@ describe('wrappers/UiImageUploader', () => {
     });
 
     it(`UiImageUploader должен выводить "${LOADING_TEXT}" и иметь .image-uploader__preview-loading после выбора изображения на время загрузки через uploader`, async () => {
-      mockUploader.mockResolvedValueOnce(new Promise((resolve) => setTimeout(resolve, 100)));
+      let finishUploading;
+      mockUploader.mockResolvedValueOnce(new Promise((resolve) => (finishUploading = resolve)));
       const wrapper = shallowMount(UiImageUploader, { props: { uploader: mockUploader } });
       const mockFile = createInputFileMock(wrapper.get('input'));
       await mockFile();
       expect(wrapper.text()).toContain(LOADING_TEXT);
       expect(wrapper.find('label').classes('image-uploader__preview-loading')).toBe(true);
+      finishUploading(mockUploaderResponse);
     });
 
     it(`UiImageUploader не должен реагировать на клик во время загрузки через uploader`, async () => {
-      mockUploader.mockResolvedValueOnce(new Promise((resolve) => setTimeout(resolve, 100)));
+      let finishUploading;
+      mockUploader.mockResolvedValueOnce(new Promise((resolve) => (finishUploading = resolve)));
       const wrapper = shallowMount(UiImageUploader, { props: { uploader: mockUploader } });
       const mockFile = createInputFileMock(wrapper.get('input'));
       const { file } = await mockFile();
@@ -101,6 +103,7 @@ describe('wrappers/UiImageUploader', () => {
       expect(wrapper.find('label').classes('image-uploader__preview-loading')).toBe(true);
       expect(wrapper.get('input').element.files[0]).toBe(file);
       expect(wrapper.emitted('remove')).not.toBeDefined();
+      finishUploading(mockUploaderResponse);
     });
 
     it('UiImageUploader должен порождать событие error с ошибкой uploader-а после не успешного окончания загрузки', async () => {
@@ -152,8 +155,6 @@ describe('wrappers/UiImageUploader', () => {
       const wrapper = shallowMount(UiImageUploader, { props: { uploader: undefined } });
       const mockFile = createInputFileMock(wrapper.get('input'));
       await mockFile();
-      await flushPromises();
-      await nextTick();
       expect(wrapper.text()).toContain(DELETE_TEXT);
     });
 
@@ -184,8 +185,6 @@ describe('wrappers/UiImageUploader', () => {
       const wrapper = shallowMount(UiImageUploader);
       const mockFile = createInputFileMock(wrapper.get('input'));
       await mockFile();
-      await flushPromises();
-      await nextTick();
       await wrapper.find('label').trigger('click');
       expect(wrapper.find('input').element.value).toBeFalsy();
     });
